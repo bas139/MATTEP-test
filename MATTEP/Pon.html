@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Top-Right Toast Notifications</title>
+    <style>
+        /* 1. Container ควบคุมให้อยู่มุมขวาบน */
+        #toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            pointer-events: none; /* เพื่อไม่ให้ Container บล็อกการคลิกด้านล่าง */
+        }
+
+        /* 2. ดีไซน์ของตัวแจ้งเตือนแต่ละอัน */
+        .toast {
+            pointer-events: auto; /* ให้ตัวแจ้งเตือนสามารถคลิกได้ */
+            min-width: 280px;
+            background-color: #ffffff;
+            color: #333333;
+            padding: 16px 20px;
+            border-radius: 8px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-size: 15px;
+            font-weight: 500;
+            border-left: 6px solid #007bff; /* สีเส้นแถบด้านซ้าย */
+            
+            /* แอนิเมชันตอนเด้งเข้ามา */
+            animation: slideInRight 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        /* 3. สีของแถบซ้ายแบ่งตามประเภท */
+        .toast.success { border-left-color: #28a745; }
+        .toast.error   { border-left-color: #dc3545; }
+        .toast.warning { border-left-color: #ffc107; }
+        .toast.info    { border-left-color: #17a2b8; }
+
+        /* 4. ปุ่มกากบาทปิด */
+        .toast-close {
+            background: none;
+            border: none;
+            color: #aaa;
+            font-size: 20px;
+            cursor: pointer;
+            margin-left: 15px;
+            padding: 0;
+            line-height: 1;
+            transition: color 0.2s;
+        }
+        .toast-close:hover {
+            color: #333;
+        }
+
+        /* 5. คลาสสำหรับซ่อนตัว (เฟดออกไปทางขวา) */
+        .toast.hiding {
+            opacity: 0;
+            transform: translateX(100%);
+        }
+
+        @keyframes slideInRight {
+            from { transform: translateX(120%); opacity: 0; }
+            to   { transform: translateX(0); opacity: 1; }
+        }
+
+        /* --- สไตล์สำหรับปุ่มทดสอบในหน้าจอ --- */
+        body { background-color: #f4f7f6; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .test-buttons { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+        button.btn { padding: 12px 24px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 16px; color: #fff; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .btn:active { transform: translateY(2px); }
+        .btn.btn-success { background-color: #28a745; }
+        .btn.btn-error   { background-color: #dc3545; }
+        .btn.btn-warning { background-color: #ffc107; color: #333; }
+        .btn.btn-info    { background-color: #17a2b8; }
+    </style>
+</head>
+<body>
+
+    <!-- พื้นที่สำหรับปุ่มกดเพื่อทดสอบ -->
+    <div class="test-buttons">
+        <button class="btn btn-success" onclick="notify('บันทึกข้อมูลเรียบร้อยแล้ว!', 'success')">แจ้งเตือน สำเร็จ</button>
+        <button class="btn btn-error" onclick="notify('ไม่สามารถลบข้อมูลได้!', 'error')">แจ้งเตือน ผิดพลาด</button>
+        <button class="btn btn-warning" onclick="notify('รหัสผ่านใกล้จะหมดอายุ', 'warning')">แจ้งเตือน ระวัง</button>
+        <button class="btn btn-info" onclick="notify('มีข้อความใหม่ส่งถึงคุณ', 'info')">แจ้งเตือน ทั่วไป</button>
+    </div>
+
+    <!-- จุดที่ป๊อปอัปจะไปกองรวมกัน (ต้องมีอยู่ใน HTML) -->
+    <div id="toast-container"></div>
+
+    <script>
+        /**
+         * ฟังก์ชันหลักสำหรับเรียกใช้แจ้งเตือน
+         * @param {string} message - ข้อความที่ต้องการแสดง
+         * @param {string} type - 'success', 'error', 'warning', หรือ 'info'
+         * @param {number} duration - เวลาที่แสดง (มิลลิวินาที) ค่าเริ่มต้น 4000 (4 วินาที)
+         */
+        function notify(message, type = 'info', duration = 4000) {
+            const container = document.getElementById('toast-container');
+
+            // 1. สร้าง Element สำหรับป๊อปอัป
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+
+            // 2. ใส่ข้อความ
+            const textSpan = document.createElement('span');
+            textSpan.textContent = message;
+            toast.appendChild(textSpan);
+
+            // 3. สร้างปุ่ม [X] กากบาทปิด
+            const closeBtn = document.createElement('button');
+            closeBtn.className = 'toast-close';
+            closeBtn.innerHTML = '&times;';
+            toast.appendChild(closeBtn);
+
+            // 4. เอาป๊อปอัปใส่เข้าไปใน Container บนขวา
+            container.appendChild(toast);
+
+            // 5. ฟังก์ชันสำหรับตอนปิด (เพิ่มแอนิเมชันเฟดออก แล้วค่อยลบทิ้ง)
+            const removeToast = () => {
+                toast.classList.add('hiding'); // เปลี่ยน state เพื่อเริ่มแอนิเมชันซ่อนตัว
+                toast.addEventListener('transitionend', () => {
+                    toast.remove(); // ลบออกจาก HTML จริงๆ หลังแอนิเมชันจบ
+                });
+            };
+
+            // 6. ตั้งเวลาให้มันเรียกฟังก์ชันปิดเองอัตโนมัติ
+            const timer = setTimeout(removeToast, duration);
+
+            // 7. กำหนดให้เวลาผู้ใช้คลิก [X] ก็ปิดได้เลยทันทีไม่ต้องรอเวลา
+            closeBtn.addEventListener('click', () => {
+                clearTimeout(timer); // ยกเลิกตัวตั้งเวลาออกก่อน เพื่อไม่ให้ทำงานซ้ำซ้อน
+                removeToast();
+            });
+        }
+    </script>
+
+</body>
+</html>
