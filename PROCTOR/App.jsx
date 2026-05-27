@@ -528,10 +528,10 @@ export default function App() {
     <BrowserRouter>
       <Routes>
         {/* บังคับเมื่อวิ่งเข้าหน้าหลักของเว็บให้ Redirect ไปหน้า /home ทันที */}
-        <Route path="/" element={<Navigate to="/home.html" replace />} />
+        <Route path="/" element={<Navigate to="/home" replace />} />
         
         {/* หน้าหลักของแอปพลิเคชันกำหนดให้อยู่บนเส้นทาง /home */}
-        <Route path="/home.html" element={<ProctorApp />} />
+        <Route path="/home" element={<ProctorApp />} />
       </Routes>
     </BrowserRouter>
   );
